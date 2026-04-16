@@ -5,8 +5,9 @@
 xray_version: v26.3.27
 
 # Installation and configuration directories
-xray_install_dir: /usr/local/etc/xray
-xray_config_dir: /usr/local/etc/xray
+xray_install_dir: /opt/xray
+xray_config_dir: /etc/xray
+xray_bin_path: /usr/local/bin/xray
 xray_client_output_dir: /root/xray-clients
 
 # Network configuration

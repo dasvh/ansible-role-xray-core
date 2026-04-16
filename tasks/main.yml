@@ -27,7 +27,7 @@
 - name: Install Xray binary
   copy:
     src: "{{ xray_install_dir }}/xray"
-    dest: /usr/local/bin/xray
+    dest: "{{ xray_bin_path }}"
     owner: root
     group: root
     mode: "0755"
@@ -41,7 +41,7 @@
 
 - name: Generate REALITY private and public keys
   shell: |
-    /usr/local/bin/xray x25519 > {{ xray_config_dir }}/reality_keys.txt
+    {{ xray_bin_path }} x25519 > {{ xray_config_dir }}/reality_keys.txt
   args:
     executable: /bin/bash
   when: not xray_reality_key_file.stat.exists or xray_reality_key_file.stat.size == 0
@@ -54,7 +54,7 @@
 - name: Store REALITY keys as facts
   set_fact:
     xray_reality_private_key: "{{ ((xray_reality_keys_raw.content | b64decode) | regex_search('PrivateKey:\\s*(\\S+)', '\\1')) | first }}"
-    xray_reality_public_key: "{{ ((xray_reality_keys_raw.content | b64decode) | regex_search('Password:\\s*(\\S+)', '\\1')) | first }}"
+    xray_reality_public_key: "{{ ((xray_reality_keys_raw.content | b64decode) | regex_search('Password \\(PublicKey\\):\\s*(\\S+)', '\\1')) | first }}"
 
 - name: Generate per-client short IDs
   shell: "openssl rand -hex 4 > {{ xray_config_dir }}/clients/{{ item.name }}.shortid"
