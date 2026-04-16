@@ -45,4 +45,4 @@ xray_clients:
 
 ## License
 
-MIT
+This project is licensed under the [MIT License](https://github.com/dasvh/ansible-role-xray-core/raw/main/LICENSE).
