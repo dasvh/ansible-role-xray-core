@@ -75,7 +75,7 @@
 - name: Store REALITY keys as facts
   ansible.builtin.set_fact:
     xray_reality_private_key: "{{ ((xray_reality_keys_raw.content | b64decode) | regex_search('PrivateKey:\\s*(\\S+)', '\\1')) | first }}"
-    xray_reality_public_key: "{{ ((xray_reality_keys_raw.content | b64decode) | regex_search('Password \\(PublicKey\\):\\s*(\\S+)', '\\1')) | first }}"
+    xray_reality_public_key: "{{ ((xray_reality_keys_raw.content | b64decode) | regex_search('Password(?: \\(PublicKey\\))?:\\s*(\\S+)', '\\1')) | first }}"
 
 - name: Generate and store per-client short IDs
   ansible.builtin.copy:
