@@ -1,3 +1,5 @@
 #SPDX-License-Identifier: MIT-0
 ---
-# vars file for xray-core
+xray_system_dependencies:
+  - ca-certificates
+  - unzip

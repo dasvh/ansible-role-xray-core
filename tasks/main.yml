@@ -1,3 +1,10 @@
+- name: Install functional dependencies
+  ansible.builtin.apt:
+    name: "{{ xray_system_dependencies }}"
+    state: present
+    update_cache: yes
+    cache_valid_time: 3600
+
 - name: Create xray system group
   group:
     name: xray
@@ -46,11 +53,6 @@
     remote_src: true
   notify: Restart Xray
 
-- name: Remove downloaded archive
-  file:
-    path: "/tmp/Xray-linux-64-{{ xray_version }}.zip"
-    state: absent
-
 - name: Check REALITY key file state
   stat:
     path: "{{ xray_config_dir }}/reality_keys.txt"
@@ -75,20 +77,24 @@
     xray_reality_private_key: "{{ ((xray_reality_keys_raw.content | b64decode) | regex_search('PrivateKey:\\s*(\\S+)', '\\1')) | first }}"
     xray_reality_public_key: "{{ ((xray_reality_keys_raw.content | b64decode) | regex_search('Password \\(PublicKey\\):\\s*(\\S+)', '\\1')) | first }}"
 
-- name: Generate per-client short IDs
-  shell: "openssl rand -hex 4 > {{ xray_config_dir }}/clients/{{ item.name }}.shortid"
-  args:
-    creates: "{{ xray_config_dir }}/clients/{{ item.name }}.shortid"
+- name: Generate and store per-client short IDs
+  ansible.builtin.copy:
+    dest: "{{ xray_config_dir }}/clients/{{ item.name }}.shortid"
+    content: "{{ lookup('ansible.builtin.password', '/dev/null chars=hexdigits length=8') | lower }}"
+    owner: xray
+    group: xray
+    mode: "0600"
+    force: false
   loop: "{{ xray_clients }}"
 
-- name: Read client short IDs
-  slurp:
+- name: Read client short IDs from remote server
+  ansible.builtin.slurp:
     src: "{{ xray_config_dir }}/clients/{{ item.name }}.shortid"
   loop: "{{ xray_clients }}"
   register: xray_shortid_results
 
 - name: Build short ID map
-  set_fact:
+  ansible.builtin.set_fact:
     xray_shortid_map: "{{ xray_shortid_map | default({}) | combine({item.item.name: (item.content | b64decode | trim)}) }}"
   loop: "{{ xray_shortid_results.results }}"
 

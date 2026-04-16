@@ -29,6 +29,12 @@
     - "{{ xray_config_dir }}"
     - "{{ xray_client_output_dir }}"
 
+- name: Remove specific functional dependencies
+  ansible.builtin.apt:
+    name:
+      - unzip
+    state: absent
+
 - name: Remove xray system user
   user:
     name: xray
