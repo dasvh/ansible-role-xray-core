@@ -6,12 +6,12 @@
     cache_valid_time: 3600
 
 - name: Create xray system group
-  group:
+  ansible.builtin.group:
     name: xray
     system: yes
 
 - name: Create xray system user
-  user:
+  ansible.builtin.user:
     name: xray
     group: xray
     system: yes
@@ -19,7 +19,7 @@
     create_home: no
 
 - name: Ensure Xray directories exist
-  file:
+  ansible.builtin.file:
     path: "{{ item }}"
     state: directory
     owner: xray
@@ -32,19 +32,19 @@
     - "{{ xray_client_output_dir }}"
 
 - name: Download Xray release archive
-  get_url:
+  ansible.builtin.get_url:
     url: "https://github.com/XTLS/Xray-core/releases/download/{{ xray_version }}/Xray-linux-64.zip"
     dest: "/tmp/Xray-linux-64-{{ xray_version }}.zip"
     mode: "0644"
 
 - name: Unpack Xray release
-  unarchive:
+  ansible.builtin.unarchive:
     src: "/tmp/Xray-linux-64-{{ xray_version }}.zip"
     dest: "{{ xray_install_dir }}"
     remote_src: true
 
 - name: Install Xray binary
-  copy:
+  ansible.builtin.copy:
     src: "{{ xray_install_dir }}/xray"
     dest: "{{ xray_bin_path }}"
     owner: root
@@ -54,12 +54,12 @@
   notify: Restart Xray
 
 - name: Check REALITY key file state
-  stat:
+  ansible.builtin.stat:
     path: "{{ xray_config_dir }}/reality_keys.txt"
   register: xray_reality_key_file
 
 - name: Generate REALITY private and public keys
-  shell: |
+  ansible.builtin.shell: |
     {{ xray_bin_path }} x25519 > {{ xray_config_dir }}/reality_keys.txt
     chown xray:xray {{ xray_config_dir }}/reality_keys.txt
     chmod 400 {{ xray_config_dir }}/reality_keys.txt
@@ -68,12 +68,12 @@
   when: not xray_reality_key_file.stat.exists or xray_reality_key_file.stat.size == 0
 
 - name: Read REALITY key material
-  slurp:
+  ansible.builtin.slurp:
     src: "{{ xray_config_dir }}/reality_keys.txt"
   register: xray_reality_keys_raw
 
 - name: Store REALITY keys as facts
-  set_fact:
+  ansible.builtin.set_fact:
     xray_reality_private_key: "{{ ((xray_reality_keys_raw.content | b64decode) | regex_search('PrivateKey:\\s*(\\S+)', '\\1')) | first }}"
     xray_reality_public_key: "{{ ((xray_reality_keys_raw.content | b64decode) | regex_search('Password \\(PublicKey\\):\\s*(\\S+)', '\\1')) | first }}"
 
@@ -99,7 +99,7 @@
   loop: "{{ xray_shortid_results.results }}"
 
 - name: Install Xray config
-  template:
+  ansible.builtin.template:
     src: config.json.j2
     dest: "{{ xray_config_dir }}/config.json"
     owner: xray
@@ -108,7 +108,7 @@
   notify: Restart Xray
 
 - name: Install Xray systemd unit
-  template:
+  ansible.builtin.template:
     src: xray.service.j2
     dest: /etc/systemd/system/xray.service
     owner: root
@@ -117,11 +117,11 @@
   notify: Restart Xray
 
 - name: Reload systemd
-  systemd:
+  ansible.builtin.systemd:
     daemon_reload: true
 
 - name: Render client share links
-  template:
+  ansible.builtin.template:
     src: client.txt.j2
     dest: "{{ xray_client_output_dir }}/{{ item.name }}.txt"
     owner: xray
@@ -130,7 +130,7 @@
   loop: "{{ xray_clients }}"
 
 - name: Enable and start Xray
-  systemd:
+  ansible.builtin.systemd:
     name: xray
     enabled: true
     state: started
