@@ -1,10 +1,18 @@
 # Ansible Role: Xray-core Setup
 
-This Ansible role installs and configures xray-core with a focus on a REALITY setup.
+Installs and configures [Xray-core](https://github.com/XTLS/Xray-core), a platform for building proxies to bypass network restrictions. It specifically focuses on setting up **REALITY**, a next-generation security protocol that eliminates TLS fingerprinting by mimicking the behavior of a real, popular website (like `microsoft.com`).
+
+## Features
+
+- Installs Xray-core from official GitHub releases
+- Configures REALITY with automated key generation
+- Supports multiple transport protocols (TCP/VISION, gRPC, xhttp)
+- Generates per-client share links ready for use in clients (see [Xray-core](https://github.com/XTLS/Xray-core/blob/main/README.md#gui-clients))
 
 ## Requirements
 
-Ansible 2.9 or higher.
+- Ansible 2.9 or higher.
+- Target system: **Ubuntu 24.04 (Noble)** (Tested and verified)
 
 ## Role Variables
 
@@ -28,8 +36,6 @@ The following variables can be overridden to customize the installation.
 
 ### Example `xray_clients` format:
 
-This variable must be defined in your `group_vars` or `host_vars`.
-
 ```yaml
 xray_clients:
   - name: my-phone
@@ -37,6 +43,11 @@ xray_clients:
   - name: my-laptop
     id: "yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy"
 ```
+
+## Maintenance
+
+### Updating Xray
+To update Xray to a newer version, update the `xray_version` variable in your inventory and rerun the playbook. The role will automatically download, unpack, and install the new binary.
 
 ## License
 

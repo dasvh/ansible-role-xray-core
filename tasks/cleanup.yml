@@ -1,0 +1,30 @@
+---
+- name: Stop and disable Xray service
+  systemd:
+    name: xray
+    state: stopped
+    enabled: false
+  ignore_errors: true
+
+- name: Remove Xray systemd unit
+  file:
+    path: /etc/systemd/system/xray.service
+    state: absent
+
+- name: Reload systemd
+  systemd:
+    daemon_reload: true
+
+- name: Remove Xray binary
+  file:
+    path: "{{ xray_bin_path }}"
+    state: absent
+
+- name: Remove Xray installation and config directories
+  file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - "{{ xray_install_dir }}"
+    - "{{ xray_config_dir }}"
+    - "{{ xray_client_output_dir }}"
