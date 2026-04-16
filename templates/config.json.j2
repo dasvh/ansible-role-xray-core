@@ -1,0 +1,105 @@
+{
+  "log": {
+    "loglevel": "warning"
+  },
+{% set reality_target = xray_reality_target ~ ':443' if ':' not in xray_reality_target else xray_reality_target %}
+{% set shared_reality %}
+{
+  "show": false,
+  "dest": "{{ reality_target }}",
+  "xver": 0,
+  "serverNames": [
+    "{{ xray_reality_server_name }}"
+  ],
+  "privateKey": "{{ xray_reality_private_key }}",
+  "shortIds": [
+{% for client in xray_clients %}
+    "{{ xray_shortid_map[client.name] }}"{% if not loop.last %},{% endif %}
+{% endfor %}
+  ]
+}
+{% endset %}
+  "inbounds": [
+    {
+      "listen": "0.0.0.0",
+      "port": {{ xray_port }},
+      "protocol": "vless",
+      "settings": {
+        "clients": [
+{% for client in xray_clients %}
+          {
+            "id": "{{ client.id }}",
+            "flow": "xtls-rprx-vision",
+            "email": "{{ client.name }}"
+          }{% if not loop.last %},{% endif %}
+{% endfor %}
+        ],
+        "decryption": "none"
+      },
+      "streamSettings": {
+        "network": "tcp",
+        "security": "reality",
+        "realitySettings": {{ shared_reality | trim | indent(8, true) }}
+      }
+    },
+    {
+      "listen": "0.0.0.0",
+      "port": {{ xray_grpc_port }},
+      "protocol": "vless",
+      "settings": {
+        "clients": [
+{% for client in xray_clients %}
+          {
+            "id": "{{ client.id }}",
+            "email": "{{ client.name }}"
+          }{% if not loop.last %},{% endif %}
+{% endfor %}
+        ],
+        "decryption": "none"
+      },
+      "streamSettings": {
+        "network": "grpc",
+        "security": "reality",
+        "grpcSettings": {
+          "serviceName": "CustomGrpcService"
+        },
+        "realitySettings": {{ shared_reality | trim | indent(8, true) }}
+      }
+    },
+    {
+      "listen": "0.0.0.0",
+      "port": {{ xray_xhttp_port }},
+      "protocol": "vless",
+      "settings": {
+        "clients": [
+{% for client in xray_clients %}
+          {
+            "id": "{{ client.id }}",
+            "email": "{{ client.name }}"
+          }{% if not loop.last %},{% endif %}
+{% endfor %}
+        ],
+        "decryption": "none"
+      },
+      "streamSettings": {
+        "network": "xhttp",
+        "security": "reality",
+        "xhttpSettings": {
+          "path": "/xh"
+        },
+        "realitySettings": {{ shared_reality | trim | indent(8, true) }}
+      }
+    }
+  ],
+  "outbounds": [
+    {
+      "protocol": "freedom",
+      "settings": {}
+    },
+    {
+      "protocol": "blackhole",
+      "settings": {},
+      "tag": "blocked"
+    }
+  ]
+}

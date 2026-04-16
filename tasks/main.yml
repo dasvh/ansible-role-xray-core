@@ -1,0 +1,111 @@
+- name: Ensure Xray directories exist
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  loop:
+    - "{{ xray_install_dir }}"
+    - "{{ xray_config_dir }}"
+    - "{{ xray_config_dir }}/clients"
+    - "{{ xray_client_output_dir }}"
+
+- name: Download Xray release archive
+  get_url:
+    url: "https://github.com/XTLS/Xray-core/releases/download/{{ xray_version }}/Xray-linux-64.zip"
+    dest: "/tmp/Xray-linux-64-{{ xray_version }}.zip"
+    mode: "0644"
+
+- name: Unpack Xray release
+  unarchive:
+    src: "/tmp/Xray-linux-64-{{ xray_version }}.zip"
+    dest: "{{ xray_install_dir }}"
+    remote_src: true
+    creates: "{{ xray_install_dir }}/xray"
+
+- name: Install Xray binary
+  copy:
+    src: "{{ xray_install_dir }}/xray"
+    dest: /usr/local/bin/xray
+    owner: root
+    group: root
+    mode: "0755"
+    remote_src: true
+  notify: Restart Xray
+
+- name: Check REALITY key file state
+  stat:
+    path: "{{ xray_config_dir }}/reality_keys.txt"
+  register: xray_reality_key_file
+
+- name: Generate REALITY private and public keys
+  shell: |
+    /usr/local/bin/xray x25519 > {{ xray_config_dir }}/reality_keys.txt
+  args:
+    executable: /bin/bash
+  when: not xray_reality_key_file.stat.exists or xray_reality_key_file.stat.size == 0
+
+- name: Read REALITY key material
+  slurp:
+    src: "{{ xray_config_dir }}/reality_keys.txt"
+  register: xray_reality_keys_raw
+
+- name: Store REALITY keys as facts
+  set_fact:
+    xray_reality_private_key: "{{ ((xray_reality_keys_raw.content | b64decode) | regex_search('PrivateKey:\\s*(\\S+)', '\\1')) | first }}"
+    xray_reality_public_key: "{{ ((xray_reality_keys_raw.content | b64decode) | regex_search('Password:\\s*(\\S+)', '\\1')) | first }}"
+
+- name: Generate per-client short IDs
+  shell: "openssl rand -hex 4 > {{ xray_config_dir }}/clients/{{ item.name }}.shortid"
+  args:
+    creates: "{{ xray_config_dir }}/clients/{{ item.name }}.shortid"
+  loop: "{{ xray_clients }}"
+
+- name: Read client short IDs
+  slurp:
+    src: "{{ xray_config_dir }}/clients/{{ item.name }}.shortid"
+  loop: "{{ xray_clients }}"
+  register: xray_shortid_results
+
+- name: Build short ID map
+  set_fact:
+    xray_shortid_map: "{{ xray_shortid_map | default({}) | combine({item.item.name: (item.content | b64decode | trim)}) }}"
+  loop: "{{ xray_shortid_results.results }}"
+
+- name: Install Xray config
+  template:
+    src: config.json.j2
+    dest: "{{ xray_config_dir }}/config.json"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart Xray
+
+- name: Install Xray systemd unit
+  template:
+    src: xray.service.j2
+    dest: /etc/systemd/system/xray.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart Xray
+
+- name: Reload systemd
+  systemd:
+    daemon_reload: true
+
+- name: Render client share links
+  template:
+    src: client.txt.j2
+    dest: "{{ xray_client_output_dir }}/{{ item.name }}.txt"
+    owner: root
+    group: root
+    mode: "0600"
+  loop: "{{ xray_clients }}"
+
+- name: Enable and start Xray
+  systemd:
+    name: xray
+    enabled: true
+    state: started

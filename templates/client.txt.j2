@@ -1,0 +1,8 @@
+TCP
+vless://{{ item.id }}@{{ ansible_host | default(inventory_hostname) }}:{{ xray_port }}?encryption=none&flow=xtls-rprx-vision&security=reality&sni={{ xray_reality_server_name }}&fp={{ xray_reality_fingerprint }}&pbk={{ xray_reality_public_key }}&sid={{ xray_shortid_map[item.name] }}&type=tcp&headerType=none#{{ item.name }}-tcp
+
+gRPC
+vless://{{ item.id }}@{{ ansible_host | default(inventory_hostname) }}:{{ xray_grpc_port }}?encryption=none&security=reality&sni={{ xray_reality_server_name }}&fp={{ xray_reality_fingerprint }}&pbk={{ xray_reality_public_key }}&sid={{ xray_shortid_map[item.name] }}&type=grpc&serviceName=CustomGrpcService#{{ item.name }}-grpc
+
+XHTTP
+vless://{{ item.id }}@{{ ansible_host | default(inventory_hostname) }}:{{ xray_xhttp_port }}?encryption=none&security=reality&sni={{ xray_reality_server_name }}&fp={{ xray_reality_fingerprint }}&pbk={{ xray_reality_public_key }}&sid={{ xray_shortid_map[item.name] }}&type=xhttp&path=%2Fxh#{{ item.name }}-xhttp

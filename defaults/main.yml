@@ -1,0 +1,26 @@
+---
+# defaults file for ansible-role-xray-core
+
+# The version of Xray-core to install
+xray_version: v26.3.27
+
+# Installation and configuration directories
+xray_install_dir: /usr/local/etc/xray
+xray_config_dir: /usr/local/etc/xray
+xray_client_output_dir: /root/xray-clients
+
+# Network configuration
+xray_port: 443
+xray_grpc_port: 8443
+xray_xhttp_port: 9443
+xray_protocol: tcp
+
+# REALITY configuration
+xray_reality_fingerprint: chrome
+xray_reality_target: "www.microsoft.com"
+xray_reality_server_name: "www.microsoft.com"
+
+# A list of clients to be created.
+# Each item requires a 'name' and a UUID 'id'.
+# This variable MUST be overridden by the user.
+xray_clients: []
