@@ -20,6 +20,8 @@
 }
 {% endset %}
   "inbounds": [
+{% for transport in xray_transports %}
+{% if transport == 'tcp' %}
     {
       "listen": "0.0.0.0",
       "port": {{ xray_port }},
@@ -41,7 +43,8 @@
         "security": "reality",
         "realitySettings": {{ shared_reality | trim | indent(8, true) }}
       }
-    },
+    }{% if not loop.last %},{% endif %}
+{% elif transport == 'grpc' %}
     {
       "listen": "0.0.0.0",
       "port": {{ xray_grpc_port }},
@@ -65,7 +68,8 @@
         },
         "realitySettings": {{ shared_reality | trim | indent(8, true) }}
       }
-    },
+    }{% if not loop.last %},{% endif %}
+{% elif transport == 'xhttp' %}
     {
       "listen": "0.0.0.0",
       "port": {{ xray_xhttp_port }},
@@ -89,7 +93,9 @@
         },
         "realitySettings": {{ shared_reality | trim | indent(8, true) }}
       }
-    }
+    }{% if not loop.last %},{% endif %}
+{% endif %}
+{% endfor %}
   ],
   "outbounds": [
     {

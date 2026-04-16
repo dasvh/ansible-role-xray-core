@@ -14,7 +14,12 @@ xray_client_output_dir: /root/xray-clients
 xray_port: 443
 xray_grpc_port: 8443
 xray_xhttp_port: 9443
-xray_protocol: tcp
+
+# List of enabled transports. Options: 'tcp', 'grpc', 'xhttp'
+xray_transports:
+  - tcp
+  - grpc
+  - xhttp
 
 # REALITY configuration
 xray_reality_fingerprint: chrome

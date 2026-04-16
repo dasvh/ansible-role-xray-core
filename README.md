@@ -1,6 +1,8 @@
 # Ansible Role: Xray-core Setup
 
-Installs and configures [Xray-core](https://github.com/XTLS/Xray-core), a platform for building proxies to bypass network restrictions. It specifically focuses on setting up **REALITY**, a next-generation security protocol that eliminates TLS fingerprinting by mimicking the behavior of a real, popular website (like `microsoft.com`).
+Installs and configures [Xray-core](https://github.com/XTLS/Xray-core), a platform for building proxies to bypass
+network restrictions. It specifically focuses on setting up **REALITY**, a next-generation security protocol that
+eliminates TLS fingerprinting by mimicking the behavior of a real, popular website (like `microsoft.com`).
 
 ## Features
 
@@ -17,23 +19,26 @@ Installs and configures [Xray-core](https://github.com/XTLS/Xray-core), a platfo
 
 ## Security Notes
 
-- **User Privileges:** The Xray process runs as the `xray` user. It uses Linux Capabilities (`CAP_NET_BIND_SERVICE`) to allow binding to privileged ports like 443 without requiring root access.
-- **Key Generation:** REALITY private keys are generated on the fly on the server if they don't exist. They are stored in `{{ xray_config_dir }}/reality_keys.txt` with restricted permissions (400).
+- **User Privileges:** The Xray process runs as the `xray` user. It uses Linux Capabilities (`CAP_NET_BIND_SERVICE`) to
+  allow binding to privileged ports like 443 without requiring root access.
+- **Key Generation:** REALITY private keys are generated on the fly on the server if they don't exist. They are stored
+  in `{{ xray_config_dir }}/reality_keys.txt` with restricted permissions (400).
 - **Client IDs:** You **must** provide a unique UUID for each client. You can generate one using the `uuidgen` command
 
 ## Role Variables
 
 The following variables can be overridden to customize the installation.
 
-| Variable                   | Default Value            | Description                                         |
-| -------------------------- | ------------------------ | --------------------------------------------------- |
-| `xray_version`             | `v26.3.28`               | The version of Xray-core to install.                |
-| `xray_install_dir`         | `/opt/xray`              | Directory to install Xray binaries.                 |
-| `xray_config_dir`          | `/etc/xray`              | Directory for Xray configuration files.             |
-| `xray_bin_path`            | `/usr/local/bin/xray`    | Full path to the Xray binary.                       |
-| `xray_client_output_dir`   | `/root/xray-clients`     | Directory to save generated client share links.     |
-| `xray_port`                | `443`                    | The main inbound port for Xray (TCP/VISION).        |
-| `xray_clients`             | `[]`                     | A list of client objects (name and UUID `id`).      |
+| Variable                 | Default Value              | Description                                     |
+|--------------------------|----------------------------|-------------------------------------------------|
+| `xray_version`           | `v26.3.28`                 | The version of Xray-core to install.            |
+| `xray_install_dir`       | `/opt/xray`                | Directory to install Xray binaries.             |
+| `xray_config_dir`        | `/etc/xray`                | Directory for Xray configuration files.         |
+| `xray_bin_path`          | `/usr/local/bin/xray`      | Full path to the Xray binary.                   |
+| `xray_client_output_dir` | `/root/xray-clients`       | Directory to save generated client share links. |
+| `xray_port`              | `443`                      | The main inbound port for Xray (TCP/VISION).    |
+| `xray_transports`        | `['tcp', 'grpc', 'xhttp']` | List of transport protocols to enable.          |
+| `xray_clients`           | `[]`                       | A list of client objects (name and UUID `id`).  |
 
 ### Example `xray_clients` format:
 
