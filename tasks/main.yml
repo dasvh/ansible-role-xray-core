@@ -1,10 +1,23 @@
+- name: Create xray system group
+  group:
+    name: xray
+    system: yes
+
+- name: Create xray system user
+  user:
+    name: xray
+    group: xray
+    system: yes
+    shell: /usr/sbin/nologin
+    create_home: no
+
 - name: Ensure Xray directories exist
   file:
     path: "{{ item }}"
     state: directory
-    owner: root
-    group: root
-    mode: "0755"
+    owner: xray
+    group: xray
+    mode: "0750"
   loop:
     - "{{ xray_install_dir }}"
     - "{{ xray_config_dir }}"
@@ -46,6 +59,8 @@
 - name: Generate REALITY private and public keys
   shell: |
     {{ xray_bin_path }} x25519 > {{ xray_config_dir }}/reality_keys.txt
+    chown xray:xray {{ xray_config_dir }}/reality_keys.txt
+    chmod 400 {{ xray_config_dir }}/reality_keys.txt
   args:
     executable: /bin/bash
   when: not xray_reality_key_file.stat.exists or xray_reality_key_file.stat.size == 0
@@ -81,9 +96,9 @@
   template:
     src: config.json.j2
     dest: "{{ xray_config_dir }}/config.json"
-    owner: root
-    group: root
-    mode: "0644"
+    owner: xray
+    group: xray
+    mode: "0640"
   notify: Restart Xray
 
 - name: Install Xray systemd unit
@@ -103,8 +118,8 @@
   template:
     src: client.txt.j2
     dest: "{{ xray_client_output_dir }}/{{ item.name }}.txt"
-    owner: root
-    group: root
+    owner: xray
+    group: xray
     mode: "0600"
   loop: "{{ xray_clients }}"
 

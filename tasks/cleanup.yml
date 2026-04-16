@@ -28,3 +28,14 @@
     - "{{ xray_install_dir }}"
     - "{{ xray_config_dir }}"
     - "{{ xray_client_output_dir }}"
+
+- name: Remove xray system user
+  user:
+    name: xray
+    state: absent
+    remove: no
+
+- name: Remove xray system group
+  group:
+    name: xray
+    state: absent

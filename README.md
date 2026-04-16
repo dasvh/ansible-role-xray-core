@@ -8,11 +8,18 @@ Installs and configures [Xray-core](https://github.com/XTLS/Xray-core), a platfo
 - Configures REALITY with automated key generation
 - Supports multiple transport protocols (TCP/VISION, gRPC, xhttp)
 - Generates per-client share links ready for use in clients (see [Xray-core](https://github.com/XTLS/Xray-core/blob/main/README.md#gui-clients))
+- Simple updates for Xray-core by changing the `xray_version` variable
 
 ## Requirements
 
 - Ansible 2.9 or higher.
-- Target system: **Ubuntu 24.04 (Noble)** (Tested and verified)
+- Target system: **Ubuntu 24.04 (noble numbat)** (tested on a VPS).
+
+## Security Notes
+
+- **User Privileges:** The Xray process runs as the `xray` user. It uses Linux Capabilities (`CAP_NET_BIND_SERVICE`) to allow binding to privileged ports like 443 without requiring root access.
+- **Key Generation:** REALITY private keys are generated on the fly on the server if they don't exist. They are stored in `{{ xray_config_dir }}/reality_keys.txt` with restricted permissions (400).
+- **Client IDs:** You **must** provide a unique UUID for each client. You can generate one using the `uuidgen` command
 
 ## Role Variables
 
@@ -26,28 +33,15 @@ The following variables can be overridden to customize the installation.
 | `xray_bin_path`            | `/usr/local/bin/xray`    | Full path to the Xray binary.                       |
 | `xray_client_output_dir`   | `/root/xray-clients`     | Directory to save generated client share links.     |
 | `xray_port`                | `443`                    | The main inbound port for Xray (TCP/VISION).        |
-| `xray_grpc_port`           | `8443`                   | The inbound port for gRPC.                          |
-| `xray_xhttp_port`          | `9443`                   | The inbound port for xhttp.                         |
-| `xray_protocol`            | `tcp`                    | The transport protocol to use.                      |
-| `xray_reality_fingerprint` | `chrome`                 | The uTLS fingerprint for REALITY.                   |
-| `xray_reality_target`      | `www.microsoft.com`      | The destination for REALITY handshaking.            |
-| `xray_reality_server_name` | `www.microsoft.com`      | The server name to match for REALITY.               |
-| `xray_clients`             | `[]`                     | A list of client objects. **This must be set.**     |
+| `xray_clients`             | `[]`                     | A list of client objects (name and UUID `id`).      |
 
 ### Example `xray_clients` format:
 
 ```yaml
 xray_clients:
   - name: my-phone
-    id: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-  - name: my-laptop
-    id: "yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy"
+    id: "1fe00393-c83d-43f0-81ec-cb0ee8074641"
 ```
-
-## Maintenance
-
-### Updating Xray
-To update Xray to a newer version, update the `xray_version` variable in your inventory and rerun the playbook. The role will automatically download, unpack, and install the new binary.
 
 ## License
 

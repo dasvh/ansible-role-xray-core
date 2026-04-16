@@ -5,7 +5,8 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-User=root
+User=xray
+Group=xray
 CapabilityBoundingSet=CAP_NET_BIND_SERVICE CAP_NET_ADMIN
 AmbientCapabilities=CAP_NET_BIND_SERVICE CAP_NET_ADMIN
 NoNewPrivileges=true
