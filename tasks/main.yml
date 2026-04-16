@@ -22,7 +22,6 @@
     src: "/tmp/Xray-linux-64-{{ xray_version }}.zip"
     dest: "{{ xray_install_dir }}"
     remote_src: true
-    creates: "{{ xray_install_dir }}/xray"
 
 - name: Install Xray binary
   copy:
@@ -33,6 +32,11 @@
     mode: "0755"
     remote_src: true
   notify: Restart Xray
+
+- name: Remove downloaded archive
+  file:
+    path: "/tmp/Xray-linux-64-{{ xray_version }}.zip"
+    state: absent
 
 - name: Check REALITY key file state
   stat:
